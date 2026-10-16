@@ -46,6 +46,41 @@ An IoT system that periodically reads room humidity and controls a Daikin air co
 
 **IR note:** a GPIO pin can only supply a small current, so IR range driven directly from the GPIO is about 10-50 cm. For roughly 2 m, use an NPN transistor driver (e.g. 2N2222/S8050) with a 1 kΩ base resistor and a 33-47 Ω LED resistor from 5V.
 
+### 🆕 3.1 Custom IR Transmitter Circuit (5 V, NPN transistor)
+
+A GPIO pin can only supply a small current, so an IR LED driven directly from it reaches only about 10-50 cm. Here the GPIO only switches a transistor, and the transistor drives the LED from the 5 V rail.
+
+```
+ 5V (VIN) ──[ 100 Ω ]──► Anode (+) IR LED
+                          Cathode (−) ──► Collector (C)
+ GPIO4 ──[ 680 Ω ]──────────────────────► Base (B)      2N2222
+                                           Emitter (E) ──► GND ──── ESP32 GND
+```
+
+**Components**
+
+| Qty | Component | Role |
+|---|---|---|
+| 1 | 940 nm IR LED (long leg = anode) | IR emitter |
+| 1 | 2N2222 NPN transistor | Switch driven by the GPIO |
+| 1 | 100 Ω resistor | Limits LED current |
+| 1 | 680 Ω resistor | Limits base current so the GPIO is not overloaded |
+
+**Connections**
+
+| From | To |
+|---|---|
+| VIN (5V) | 100 Ω, then IR LED anode (+) |
+| IR LED cathode (−) | 2N2222 collector (C) |
+| GPIO4 | 680 Ω, then 2N2222 base (B) |
+| 2N2222 emitter (E) | GND (same GND as the ESP32) |
+
+**How it works:** when the library outputs a 38 kHz pulse on GPIO14, a small base current turns the transistor on. This closes the path 5V → 100 Ω → LED → collector → emitter → GND, so the LED flashes in the IR pattern.
+
+**Approximate currents** (assuming LED Vf ≈ 1.2 V, transistor Vce(sat) ≈ 0.2 V, GPIO = 3.3 V, Vbe ≈ 0.7 V):
+- LED current ≈ (5 − 1.2 − 0.2) / 100 Ω ≈ **36 mA** while a pulse is on. Because the signal is a 38 kHz pulse train with roughly 1/3 duty, the average is lower.
+- Base current ≈ (3.3 − 0.7) / 680 Ω ≈ **3.8 mA**, which is safe for the GPIO and enough to saturate the transistor.
+
 ---
 
 ## 4. How the System Works
