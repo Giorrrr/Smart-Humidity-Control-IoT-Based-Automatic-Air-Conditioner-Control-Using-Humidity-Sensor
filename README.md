@@ -1,0 +1,2 @@
+# Smart-Humidity-Control-IoT-Based-Automatic-Air-Conditioner-Control-Using-Humidity-Sensor
+An IoT system that periodically reads room humidity and controls a Daikin air conditioner via infrared (IR). When humidity exceeds the threshold, the AC is turned on in Dry mode. When humidity drops far enough below the threshold, the AC is turned off. Users can also monitor and control the system from a web/app interface over MQTT.
